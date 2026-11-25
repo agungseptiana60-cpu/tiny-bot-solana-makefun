@@ -84,6 +84,12 @@ def on_batch(state, batch):
         _ema_step(slow_ema.setdefault(sym, {"warm": [], "value": None}), close, SLOW_BARS)
 
     if state.warming_up:
+        # Remember this batch's trend gaps even on warm-up bars, so the
+        # first tradable bar can already see a cross-down instead of
+        # starting blind. (Only here: on tradable bars the gaps are
+        # recorded at the end of on_batch, after the cross checks.)
+        for bar in batch["bars"]:
+            prev_gap[bar["symbol"]] = _gap(bar["symbol"])
         return []
 
     symbols = [s["symbol"] for s in state.hello["symbols"]]
